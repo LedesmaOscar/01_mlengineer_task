@@ -54,8 +54,8 @@ ENV MODEL_BASE_PATH=/home/Metro/01_mlengineer_task
 ENV MODEL_NAME=dnn_model
 
 # Prepare the CMD that will be run on docker run
-RUN chown -R model-server /home/Metro
 RUN chown -R model-server /home/venv
+RUN chown -R model-server /home/Metro
 USER model-server
 CMD tensorflow_model_server --port=$GRPC_PORT --rest_api_port=$REST_PORT --model_name=$MODEL_NAME --model_base_path=$MODEL_PATH >> /home/logs/server.log
 
