@@ -23,26 +23,40 @@ RUN apt-get update \
     && python3 get-pip.py \
     && rm get-pip.py
 
-#RUN apt-get install -y git
+# Create a new Python env and include it in the PATH
+RUN python3 -m venv /home/venv
+ENV PATH="/home/venv/bin:$PATH"
 
+# Creates a new Ubuntu user
+RUN useradd -m model-server
 
-COPY . /
+# COPY . /
 
-# Expose ports
-# gRPC
-EXPOSE 8500
+# Expose the ports 8500 (gRPC) and 8501 (REST)
+ENV GRPC_PORT=8500
+ENV REST_PORT=8501
+EXPOSE $GRPC_PORT $REST_PORT
 
-# REST
-EXPOSE 8501
 
 ENTRYPOINT ["/usr/bin/tf_serving_entrypoint.sh"]
 
-
 RUN mkdir /home/Metro && cd /home/Metro       
 WORKDIR /home/Metro
-       
-RUN git clone https://github.com/LedesmaOscar/TestMetro.git 
 
-#Set working directory
+# Creates a directory for the logs and sets permissions to it
+RUN mkdir /home/logs 
+RUN chown -R model-server /home/logs
+       
+RUN git clone https://github.com/LedesmaOscar/01_mlengineer_task.git 
+
+# Defines the model_path  variable and the model name
+ENV MODEL_BASE_PATH=/home/Metro/01_mlengineer_task
+ENV MODEL_NAME=dnn_model
+
+# Prepare the CMD that will be run on docker run
+RUN chown -R model-server /home/Metro
+RUN chown -R model-server /home/venv
+USER model-server
+CMD tensorflow_model_server --port=$GRPC_PORT --rest_api_port=$REST_PORT --model_name=$MODEL_NAME --model_base_path=$MODEL_PATH >> /home/logs/server.log
 
 
